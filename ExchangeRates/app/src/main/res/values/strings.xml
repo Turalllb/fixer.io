@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">ExchangeRates</string>
+    <string name="currency">Валюта</string>
+    <string name="button_sort_name1">по алфавиту</string>
+    <string name="button_sort_name2">по убыванию</string>
+    <string name="button_sort_name3">по возрастанию</string>
+    <string name="save_exchange_rates">Сохранить</string>
+    <string name="load_saved_exchange_rates">Загрузить</string>
+</resources>

@@ -1,0 +1,9 @@
+*.class
+gen
+
+/bin
+/.settings
+/local-repo
+/target
+/lint.xml
+/build
