@@ -30,4 +30,5 @@ dependencies {
     compile project(':Android-File-Dialog-master')
     testCompile 'junit:junit:4.12'
     compile files('libs/json-simple-1.1.1.jar')
+    compile project(':vksdk')
 }

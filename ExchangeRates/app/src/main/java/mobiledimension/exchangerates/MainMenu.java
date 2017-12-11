@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.text.format.DateFormat;
 import android.view.View;
@@ -49,6 +50,7 @@ public class MainMenu extends AppCompatActivity implements DatePickerFragment.Di
     AdapterModelData adapterModelData;
     SaveLoadDate saveLoadDate;
     String answer;
+    Fragment fragmentAct;
 
 
     ArrayAdapter<String> SpinnerAdapter;
@@ -64,6 +66,7 @@ public class MainMenu extends AppCompatActivity implements DatePickerFragment.Di
         datePickerFragment = new DatePickerFragment();
         rates = new Rates();
         saveLoadDate = new SaveLoadDate(this);
+        fragmentAct = new Fragment();
 
         //region findViewById
         Current_Date = (TextView) findViewById(R.id.Current_Date);
