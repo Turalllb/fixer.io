@@ -34,27 +34,21 @@ import static mobiledimension.exchangerates.ModelData.COMPARATOR_VALUE_DESCENDIN
 
 public class MainMenu extends AppCompatActivity implements DatePickerFragment.DialogFragmentListener, AsyncUploadingData.AsyncResult {
 
-    Spinner SpinnerOfCurrencies;
-    TextView Current_Date;
-    String currentDate;
-    public DatePickerFragment datePickerFragment;
-    Rates rates;
-    String CurrentCurrency = "EUR";
-    List<String> currencies = new ArrayList<>();
+    private String currentDate;
+    private String answer;
+    private String CurrentCurrency = "EUR";
+    private List<String> currencies = new ArrayList<>();
     /*List<String> currencies = new ArrayList<>(Arrays.asList("AUD", "BGN", "BRL", "CAD", "CHF", "CNY", "CZK", "DKK", "EUR", "GBP", "HKD", "HRK", "HUF", "IDR", "ILS",
-            "INR", "JPY", "KRW", "MXN", "MYR", "NOK", "NZD", "PHP", "PLN", "RON", "RUB", "SEK", "SGD", "THB", "TRY", "USD", "ZAR"));*/
-
-
-    ListView listView;
+            "INR", "JPY", "KRW", "MXN", "MYR", "NOK", "NZD", "PHP", "PLN", "RON", "RUB", "SEK", "SGD", "THB", "TRY", "USD", "ZAR")); На случай использования статического парсера */
+    private TextView Current_Date;
+    private ListView listView;
     private List<ModelData> modelDataArrayList = new ArrayList<>();
-    AdapterModelData adapterModelData;
-    SaveLoadDate saveLoadDate;
-    String answer;
-    Fragment fragmentAct;
-
-
-    ArrayAdapter<String> SpinnerAdapter;
-
+    private ArrayAdapter<String> SpinnerAdapter;
+    private AdapterModelData adapterModelData;
+    private SaveLoadDate saveLoadDate;
+    private Fragment fragmentAct;
+    private DatePickerFragment datePickerFragment;
+    private Spinner SpinnerOfCurrencies;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,7 +58,6 @@ public class MainMenu extends AppCompatActivity implements DatePickerFragment.Di
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);  //приложение на полный экран
 
         datePickerFragment = new DatePickerFragment();
-        rates = new Rates();
         saveLoadDate = new SaveLoadDate(this);
         fragmentAct = new Fragment();
 
@@ -73,7 +66,6 @@ public class MainMenu extends AppCompatActivity implements DatePickerFragment.Di
         SpinnerOfCurrencies = (Spinner) findViewById(R.id.spinnerCurrency);
         listView = (ListView) findViewById(R.id.ListView);
         //endregion
-
 
         //region предварительная установка текущей даты
         currentDate = DateFormat.format("yyyy-MM-dd", new Date()).toString();
@@ -133,7 +125,13 @@ public class MainMenu extends AppCompatActivity implements DatePickerFragment.Di
     }
 
     public void onClickSave(View view) {
-        saveLoadDate.SaveDate(answer, currentDate, CurrentCurrency);
+        if (answer != null) {
+            saveLoadDate.SaveDate(answer, currentDate, CurrentCurrency); //Если не проверить, answer = null запишется
+        } else {
+            Toast toast = Toast.makeText(getApplicationContext(),
+                    "Нет загруженных данных по последнему запросу", Toast.LENGTH_SHORT);
+            toast.show();
+        }
     }
 
     public void onClickLoad(View view) {
@@ -157,14 +155,6 @@ public class MainMenu extends AppCompatActivity implements DatePickerFragment.Di
         String url = "https://api.fixer.io/" + currentDate + "?base=" + CurrentCurrency;
         AsyncUploadingData asyncUploadingData = new AsyncUploadingData(this);
         asyncUploadingData.execute(url);
-        /*try {
-            answer = asyncUploadingData.get(); //Вынести ожиданние ответа в калбек, во избежание ANR
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
-        */
     }
 
     //Метод интерфейса для обратного вызова из АсинкТаск
@@ -230,20 +220,17 @@ public class MainMenu extends AppCompatActivity implements DatePickerFragment.Di
 
         if (resultCode == AppCompatActivity.RESULT_OK) {
             if (requestCode == FileDialog.REQUEST_SAVE) {
-                System.out.println("Saving...");
+                //Save
             } else if (requestCode == FileDialog.REQUEST_LOAD) {
                 String FilePAth = data.getStringExtra(FileDialogOptions.RESULT_FILE);
                 answer = saveLoadDate.LoadDate(FilePAth);
                 if (answer != null) {
                     SetModelDataArrayList();
                 }
-
-                System.out.println("Loading...");
+                //Load
             }
 
-        } else if (resultCode == Activity.RESULT_CANCELED) {
-
-        }
+        } else if (resultCode == Activity.RESULT_CANCELED) {}
 
     }
 

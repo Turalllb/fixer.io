@@ -1,6 +1,7 @@
 package mobiledimension.exchangerates;
 
 import android.os.AsyncTask;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -16,17 +17,13 @@ public class AsyncUploadingData extends AsyncTask<String, Void, Void> {
     private AsyncResult mCallback;
 
 
-
     interface AsyncResult {
-      void getResult(String answer);
+        void getResult(String answer);
     }
 
-    AsyncUploadingData(AsyncResult mCallback){
-       this.mCallback = mCallback;
+    AsyncUploadingData(AsyncResult mCallback) {
+        this.mCallback = mCallback;
     }
-
-
-
 
 
     @Override
@@ -36,7 +33,7 @@ public class AsyncUploadingData extends AsyncTask<String, Void, Void> {
 
     @Override
     protected Void doInBackground(String... urls) {
-        setAnswer(urls);
+        getAnswer(urls);
         return null;
     }
 
@@ -48,9 +45,8 @@ public class AsyncUploadingData extends AsyncTask<String, Void, Void> {
     }
 
 
-    private void setAnswer(String... urls) {
+    private void getAnswer(String... urls) {
         try {
-
             URL url = new URL(urls[0]);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
@@ -68,16 +64,14 @@ public class AsyncUploadingData extends AsyncTask<String, Void, Void> {
                     answer += line;
                 }
                 reader.close();
-            }
 
+            }
             connection.disconnect();
 
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
-
 
 
 }

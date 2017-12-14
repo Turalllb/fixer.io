@@ -65,7 +65,7 @@ public class FragmentAct extends Fragment implements SocialNetworkManager.OnInit
                 } else {
                     Bundle postParams = new Bundle();
                     postParams.putString(SocialNetwork.BUNDLE_LINK, "https://github.com/gorbin/ASNE");
-                    postParams.putString(SocialNetwork.BUNDLE_PICTURE, "photo14354205_456239074");
+                   // postParams.putString(SocialNetwork.BUNDLE_PICTURE, "photo14354205_456239074");
 
                     socialNetwork.requestPostPhotoMessageLink(vkPhoto, postParams, "ExchangeRates", postingComplete);
 
