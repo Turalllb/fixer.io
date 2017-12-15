@@ -5,7 +5,6 @@ import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
-import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.TextView;
 
@@ -37,10 +36,10 @@ public class DatePickerFragment extends DialogFragment implements DatePickerDial
         //region получаем дату из TextView и парсим в DataPiker, чтобы при открытии диалога, он был наведен на установленную дату
         TextView CurrentDate = (TextView) getActivity().findViewById(R.id.Current_Date);
         String Date = CurrentDate.getText().toString();
-        if(! Date.isEmpty()){
+        if (!Date.isEmpty()) {
             String[] arrdate = Date.split("-");
             year = Integer.parseInt(arrdate[0]);
-            month = Integer.parseInt(arrdate[1])-1;
+            month = Integer.parseInt(arrdate[1]) - 1;
             day = Integer.parseInt(arrdate[2]);
         }
         //endregion
@@ -50,14 +49,13 @@ public class DatePickerFragment extends DialogFragment implements DatePickerDial
         dp.setMinDate(calendarMin.getTimeInMillis()); // ставим нижний диапазон в DatePiker
         dp.setMaxDate(System.currentTimeMillis()); // верхний диапазон   в DatePiker устанавливаем сегодняшним днем
 
-
         return datePickerDialog;
     }
 
     @Override
     public void onDateSet(DatePicker view, int year, int month, int day) {
 
-        if (timesCalled == true) {
+        if (timesCalled) {
             Calendar calendar = Calendar.getInstance();
             calendar.set(year, month, day);
 
@@ -70,8 +68,7 @@ public class DatePickerFragment extends DialogFragment implements DatePickerDial
 
     }
 
-
-    interface DialogFragmentListener {  //узнать зачем нужен вложенный интерфейс
+    interface DialogFragmentListener {
         void getDate(String date);
     }
 
@@ -93,6 +90,4 @@ public class DatePickerFragment extends DialogFragment implements DatePickerDial
         timesCalled = true;   // возвращаем исходное значение
         mCallback = null;
     }
-
-
 }

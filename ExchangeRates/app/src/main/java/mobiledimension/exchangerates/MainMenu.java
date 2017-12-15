@@ -38,8 +38,6 @@ public class MainMenu extends AppCompatActivity implements DatePickerFragment.Di
     private String answer;
     private String CurrentCurrency = "EUR";
     private List<String> currencies = new ArrayList<>();
-    /*List<String> currencies = new ArrayList<>(Arrays.asList("AUD", "BGN", "BRL", "CAD", "CHF", "CNY", "CZK", "DKK", "EUR", "GBP", "HKD", "HRK", "HUF", "IDR", "ILS",
-            "INR", "JPY", "KRW", "MXN", "MYR", "NOK", "NZD", "PHP", "PLN", "RON", "RUB", "SEK", "SGD", "THB", "TRY", "USD", "ZAR")); На случай использования статического парсера */
     private TextView Current_Date;
     private ListView listView;
     private List<ModelData> modelDataArrayList = new ArrayList<>();
@@ -69,7 +67,10 @@ public class MainMenu extends AppCompatActivity implements DatePickerFragment.Di
 
         //region предварительная установка текущей даты
         currentDate = DateFormat.format("yyyy-MM-dd", new Date()).toString();
+        System.out.println(new Date());
+        System.out.println(currentDate);
         Current_Date.setText(currentDate);
+
         //endregion
 
         adapterModelData = new AdapterModelData(this, R.layout.rates, modelDataArrayList); //Адаптер списка с курсом валют
@@ -156,7 +157,6 @@ public class MainMenu extends AppCompatActivity implements DatePickerFragment.Di
         AsyncUploadingData asyncUploadingData = new AsyncUploadingData(this);
         asyncUploadingData.execute(url);
     }
-
     //Метод интерфейса для обратного вызова из АсинкТаск
     public void getResult(String answer) {
         this.answer = answer;
@@ -166,7 +166,7 @@ public class MainMenu extends AppCompatActivity implements DatePickerFragment.Di
     void SetModelDataArrayList() {
 
         if (answer != null) {
-            Parser parser = new DynamicParser(answer);
+            Parser parser = new Parser(answer);
             //класс, который хранит дату, установленную валюту и т.д. для удобной передачи из парсера,
             // а если нужно и для возврата из дессериализатора
             IncomeData incomeData = parser.getIncomeData();
@@ -183,27 +183,6 @@ public class MainMenu extends AppCompatActivity implements DatePickerFragment.Di
         }
     }
 
-
-    //region Этот метод был создан, думая , что мне нужен статический парсер.
-    //Не увидел сразу, что список  валют меняется в зависимости от года
- /*
-    void SetModelDataArrayList() {
-        if (answer != null) {
-
-            Parser parser = new StaticParser(answer);
-            RootObject rootObject = parser.getRootObject();
-            modelDataArrayList.clear();
-            modelDataArrayList.addAll(rootObject.getRates().GetArrayListModelData());
-            Refresh(date, CurrentCurrency);
-            //modelDataArrayList.addAll(rootObject.getRates().GetArrayListModelData());
-            // Refresh(rootObject.getDate(), rootObject.getBase());
-        } else {
-            Toast toast = Toast.makeText(getApplicationContext(),
-                    "Курсы на установленную дату отсутствуют", Toast.LENGTH_SHORT);
-            toast.show();
-        }
-    }*/
-    //endregion
 
 
     void Refresh(String date, String currency) {
