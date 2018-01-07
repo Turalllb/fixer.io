@@ -1,6 +1,5 @@
 package mobiledimension.exchangerates;
 
-
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -8,7 +7,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.github.gorbin.asne.core.SocialNetwork;
@@ -23,7 +21,7 @@ import java.util.List;
 /**
  * Created by Турал on 11.12.2017.
  */
-//Рабочий хаос )))
+
 public class FragmentAct extends Fragment implements SocialNetworkManager.OnInitializationCompleteListener, OnLoginCompleteListener {
 
     public static final String SOCIAL_NETWORK_TAG = "SocialIntegrationMain.SOCIAL_NETWORK_TAG";
@@ -38,12 +36,8 @@ public class FragmentAct extends Fragment implements SocialNetworkManager.OnInit
     public static SocialNetworkManager mSocialNetworkManager;
     Bitmap vkPhoto;
 
-
-
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment, null);
-
-
 
         Button VK_share = (Button) v.findViewById(R.id.VK_share);
         VK_share.setOnClickListener(new View.OnClickListener() {
@@ -110,6 +104,7 @@ public class FragmentAct extends Fragment implements SocialNetworkManager.OnInit
             try {
                 Toast.makeText(getActivity(), "Sent", Toast.LENGTH_LONG).show(); //выпадает NPE , если до вывода сообщения диалог уже закрыт
             } catch (NullPointerException e) {
+                e.printStackTrace();
             }
 
         }

@@ -9,28 +9,23 @@ import java.util.List;
 class IncomeData {
 
     private String base;
-    private String date;
+    private String strDate;
     private List<ModelData> rates;
     private List<String> currencies;
 
-    IncomeData(String base, String date, List<ModelData> rates, List<String> currencies) {
+    IncomeData(String base, String strDate, List<ModelData> rates, List<String> currencies) {
         this.base = base;
-        this.date = date;
+        this.strDate = strDate;
         this.rates = rates;
         this.currencies = currencies;
     }
-
-    IncomeData(List<ModelData> rates) {
-        this.rates = rates;
-    }
-
 
     String getBase() {
         return base;
     }
 
     String getDate() {
-        return date;
+        return strDate;
     }
 
     List<ModelData> getRates() {

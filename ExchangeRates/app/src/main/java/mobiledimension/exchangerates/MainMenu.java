@@ -1,10 +1,13 @@
 package mobiledimension.exchangerates;
 
-import android.app.Activity;
+import android.Manifest;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.text.format.DateFormat;
@@ -21,6 +24,7 @@ import com.lamerman.FileDialog;
 import com.lamerman.FileDialogOptions;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -30,16 +34,16 @@ import static mobiledimension.exchangerates.ModelData.COMPARATOR_NAME;
 import static mobiledimension.exchangerates.ModelData.COMPARATOR_VALUE_ASCENDING;
 import static mobiledimension.exchangerates.ModelData.COMPARATOR_VALUE_DESCENDING;
 
-//АПИ сайта  по запросу на второе и третье декабря 2017 года , возвращает результат на первое декабря.
-
 public class MainMenu extends AppCompatActivity implements DatePickerFragment.DialogFragmentListener, AsyncUploadingData.AsyncResult {
-
+    static final String LOG_TAG = "myLogs";
+    private final int REQUEST_PERMISSIONS_WRITE_EXTERNAL_STORAGE = 234;
+    DatabaseHelper databaseHelper;
+    DatabaseManagement databaseManagement;
     private String currentDate;
     private String answer;
     private String CurrentCurrency = "EUR";
-    private List<String> currencies = new ArrayList<>();
+    private List<String> currencies = new ArrayList<>(Arrays.asList("EUR"));
     private TextView Current_Date;
-    private ListView listView;
     private List<ModelData> modelDataArrayList = new ArrayList<>();
     private ArrayAdapter<String> SpinnerAdapter;
     private AdapterModelData adapterModelData;
@@ -54,10 +58,16 @@ public class MainMenu extends AppCompatActivity implements DatePickerFragment.Di
         setContentView(R.layout.main_menu);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT); //постоянно портретная ориентация
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);  //приложение на полный экран
-
         datePickerFragment = new DatePickerFragment();
         saveLoadDate = new SaveLoadDate(this);
         fragmentAct = new Fragment();
+        ListView listView;
+        //region база данных
+        databaseHelper = new DatabaseHelper(this);  // создаем объект для создания и управления версиями БД
+        SQLiteDatabase exchangeRatesDatabase = databaseHelper.getWritableDatabase();
+        databaseManagement = new DatabaseManagement(exchangeRatesDatabase, databaseHelper);
+        //endregion
+
 
         //region findViewById
         Current_Date = (TextView) findViewById(R.id.Current_Date);
@@ -67,28 +77,21 @@ public class MainMenu extends AppCompatActivity implements DatePickerFragment.Di
 
         //region предварительная установка текущей даты
         currentDate = DateFormat.format("yyyy-MM-dd", new Date()).toString();
-        System.out.println(new Date());
-        System.out.println(currentDate);
         Current_Date.setText(currentDate);
-
         //endregion
 
         adapterModelData = new AdapterModelData(this, R.layout.rates, modelDataArrayList); //Адаптер списка с курсом валют
         listView.setAdapter(adapterModelData);
 
-        SpinnerAdapter = new ArrayAdapter<String>(this, R.layout.custom_spinner_item, currencies); //Адаптер для спиннера
+        SpinnerAdapter = new ArrayAdapter<>(this, R.layout.custom_spinner_item, currencies); //Адаптер для спиннера
         SpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         SpinnerOfCurrencies.setAdapter(SpinnerAdapter);
-        //SpinnerOfCurrencies.setSelection(currencies.indexOf("EUR")); //EUR установлена валютой по умолчанию в спиннере
 
         //Обработчик нажатия на спиннер
         SpinnerOfCurrencies.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view,
                                        int position, long id) {
-                //Установленный цвет и размер не сохраняются после обновления спиннера, поэтому создан кастомный xml
-               /* ((TextView) parent.getChildAt(0)).setTextColor(Color.parseColor("#ffff8800")); //Цвет текста выбранной позиции в спинере
-                ((TextView) parent.getChildAt(0)).setTextSize(20);*/
                 CurrentCurrency(position);
                 UploadData();
             }
@@ -97,8 +100,6 @@ public class MainMenu extends AppCompatActivity implements DatePickerFragment.Di
             public void onNothingSelected(AdapterView<?> arg0) {
             }
         });
-
-        UploadData();
     }
 
 
@@ -126,8 +127,8 @@ public class MainMenu extends AppCompatActivity implements DatePickerFragment.Di
     }
 
     public void onClickSave(View view) {
-        if (answer != null) {
-            saveLoadDate.SaveDate(answer, currentDate, CurrentCurrency); //Если не проверить, answer = null запишется
+        if (answer != null) { //Если не проверить, answer = null запишется
+            saveLoadDate.SaveDate(answer, currentDate, CurrentCurrency);
         } else {
             Toast toast = Toast.makeText(getApplicationContext(),
                     "Нет загруженных данных по последнему запросу", Toast.LENGTH_SHORT);
@@ -136,6 +137,12 @@ public class MainMenu extends AppCompatActivity implements DatePickerFragment.Di
     }
 
     public void onClickLoad(View view) {
+        //Запрашиваю разрешение на чтение данных с SD
+        // Проверка на версию api не требуется, т.к. используется библиотека поддержки
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_PERMISSIONS_WRITE_EXTERNAL_STORAGE);
+    }
+
+    private void Load() {
         //Для файлового менеджера используется библиотека
         Intent intent = new Intent(getBaseContext(), FileDialog.class);
         // Устанавливаю директорию, в которой откроется загрузчик файлов
@@ -147,70 +154,84 @@ public class MainMenu extends AppCompatActivity implements DatePickerFragment.Di
 
     // Метод интерфейса для связи с Активити из Фрагмента
     public void getDate(String date) {
+        Current_Date.setText(date);
         currentDate = date;
         UploadData();
     }
 
-
     private void UploadData() {
-        String url = "https://api.fixer.io/" + currentDate + "?base=" + CurrentCurrency;
-        AsyncUploadingData asyncUploadingData = new AsyncUploadingData(this);
-        asyncUploadingData.execute(url);
+        answer = databaseManagement.getAnswer(currentDate, CurrentCurrency);
+        if (answer != null) {
+            System.out.println("из выборки: " + answer);
+            SetData();
+        } else {
+            String url = "https://api.fixer.io/" + currentDate + "?base=" + CurrentCurrency;
+            AsyncUploadingData asyncUploadingData = new AsyncUploadingData(this);
+            asyncUploadingData.execute(url);
+        }
+
     }
+
     //Метод интерфейса для обратного вызова из АсинкТаск
     public void getResult(String answer) {
-        this.answer = answer;
-        SetModelDataArrayList();
+        this.answer = answer; //сделать переменную локальной после того как сохранение станет автоматическим
+        SetData();
     }
 
-    void SetModelDataArrayList() {
-
+    void SetData() {
+        modelDataArrayList.clear();
         if (answer != null) {
             Parser parser = new Parser(answer);
             //класс, который хранит дату, установленную валюту и т.д. для удобной передачи из парсера,
             // а если нужно и для возврата из дессериализатора
             IncomeData incomeData = parser.getIncomeData();
-            modelDataArrayList.clear();
-            modelDataArrayList.addAll(incomeData.getRates()); //
-            currencies.clear();
-            currencies.addAll(incomeData.getCurrencies());
-            Collections.sort(currencies);
-            Refresh(incomeData.getDate(), incomeData.getBase());
+            if (incomeData.getDate().equals(currentDate)) {
+                modelDataArrayList.addAll(incomeData.getRates());
+                currencies.clear();
+                currencies.addAll(incomeData.getCurrencies());
+                Collections.sort(currencies);
+                SpinnerAdapter.notifyDataSetChanged();
+                //Не всегда в спиннере после обновления будет стоять валюта по которой сделан запрос,
+                //так как список спиннера тоже всегда обновляется, поэтому вручную устанавливаю текущую валюту
+                SpinnerOfCurrencies.setSelection(currencies.indexOf(CurrentCurrency));
+                adapterModelData.Refresh();
+                save(incomeData.getDate(), incomeData.getBase(), answer);
+            } else {
+                adapterModelData.Refresh();
+                Toast.makeText(getApplicationContext(),
+                        "Курсы на выходные дни отсутствуют", Toast.LENGTH_SHORT).show();
+            }
         } else {
-            Toast toast = Toast.makeText(getApplicationContext(),
-                    "Курсы по данной валюте на выбранную дату отсутствуют", Toast.LENGTH_SHORT);
-            toast.show();
+            adapterModelData.Refresh();
+            Toast.makeText(getApplicationContext(),
+                    "Курсы на текущую дату по выбранной валюте отсутствуют", Toast.LENGTH_SHORT).show();
         }
     }
 
-
-
-    void Refresh(String date, String currency) {
-        Current_Date.setText(date);
-        currentDate = date;
-        SpinnerOfCurrencies.setSelection(currencies.indexOf(currency));
-        CurrentCurrency = currency;
-        SpinnerAdapter.notifyDataSetChanged();
-        adapterModelData.Refresh();
+    void save(String date, String currency, String answer) {
+        databaseManagement.setDatabase(date, currency, answer);
     }
+
 
     @Override
     public synchronized void onActivityResult(final int requestCode, int resultCode, final Intent data) {
-
         if (resultCode == AppCompatActivity.RESULT_OK) {
-            if (requestCode == FileDialog.REQUEST_SAVE) {
-                //Save
-            } else if (requestCode == FileDialog.REQUEST_LOAD) {
+            if (requestCode == FileDialog.REQUEST_LOAD) {
                 String FilePAth = data.getStringExtra(FileDialogOptions.RESULT_FILE);
                 answer = saveLoadDate.LoadDate(FilePAth);
-                if (answer != null) {
-                    SetModelDataArrayList();
-                }
-                //Load
+                SetData();
             }
-
-        } else if (resultCode == Activity.RESULT_CANCELED) {}
-
+        }
     }
 
+    @Override
+    public synchronized void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_PERMISSIONS_WRITE_EXTERNAL_STORAGE: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Load();
+                }
+            }
+        }
+    }
 }

@@ -16,11 +16,13 @@ class Parser {
 
 
     Parser(String answer) {
+
         try {
             deserialize(answer);
-        } catch (Exception e) {
-            Exception exception;
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
+
     }
 
 
@@ -29,7 +31,7 @@ class Parser {
         JSONObject jsonObject = new JSONObject(json);
         //забираем base и date
         String base = jsonObject.get("base").toString();
-        String date = jsonObject.get("date").toString();
+        String strDate = jsonObject.get("date").toString();
         //заберем объект rates и пройдемся по нему итератором
         //все валюты сложим в свои ModelData и все сложим в лист
         JSONObject rates = jsonObject.getJSONObject("rates");
@@ -47,7 +49,7 @@ class Parser {
         }
 
         //собираем IncomeData из полученных данных
-        incomeData = new IncomeData(base, date, ratesList, currencies);
+        incomeData = new IncomeData(base, strDate, ratesList, currencies);
 
     }
 

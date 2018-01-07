@@ -19,14 +19,12 @@ class AdapterModelData extends ArrayAdapter<ModelData> {
     private LayoutInflater inflater;
     private int layout;
 
-
     AdapterModelData(Context context, int resources, List<ModelData> modelData) {
         super(context, resources, modelData);
         this.layout = resources;
         this.modelDataList = modelData;
         this.inflater = LayoutInflater.from(context);
     }
-
 
     private static class ViewHolder {
         TextView name_rate;
