@@ -13,9 +13,9 @@ import static mobiledimension.exchangerates.MainMenu.LOG_TAG;
 
 class DatabaseHelper extends SQLiteOpenHelper {
 
-
-    DatabaseHelper(Context context) {
-        super(context, "ExchangeRatesDatabase", null, 1);
+    DatabaseHelper(Context context, String Path) {
+        super(context, Path + "/"
+                + "ExchangeRatesDatabase", null, 1);
     }
 
     @Override
@@ -33,6 +33,5 @@ class DatabaseHelper extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
     }
-
 }
 

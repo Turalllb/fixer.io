@@ -1,25 +1,28 @@
 package mobiledimension.exchangerates;
 
 import android.os.AsyncTask;
+import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
+import java.net.InetAddress;
 import java.net.URL;
+
+import static mobiledimension.exchangerates.MainMenu.LOG_TAG;
 
 /**
  * Created by Турал on 28.11.2017.
  */
 
-public class AsyncUploadingData extends AsyncTask<String, Void, Void> {
+class AsyncTaskUploadingData extends AsyncTask<String, Void, String> {
+    private WeakReference<AsyncTaskResult> weakReferenceCallback;
 
-    private String answer;
-    private AsyncResult mCallback;
-
-
-    AsyncUploadingData(AsyncResult mCallback) {
-        this.mCallback = mCallback;
+    AsyncTaskUploadingData(AsyncTaskResult mCallback) {
+        //Если Активити,вызвавший AsyncTask уничтожится, GC удалит ссылку на активити
+        weakReferenceCallback = new WeakReference<>(mCallback);
     }
 
     @Override
@@ -28,32 +31,36 @@ public class AsyncUploadingData extends AsyncTask<String, Void, Void> {
     }
 
     @Override
-    protected Void doInBackground(String... urls) {
-        getAnswer(urls);
-        return null;
+    protected String doInBackground(String... urls) {
+        return getAnswer(urls);
     }
 
     @Override
-    protected void onPostExecute(Void result) {
-        super.onPostExecute(result);
-        mCallback.getResult(answer);
-
+    protected void onPostExecute(String answer) {
+        super.onPostExecute(answer);
+        try {
+            weakReferenceCallback.get().getResult(answer);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.d(LOG_TAG, "Активити была пересоздана");
+        }
     }
 
-    private void getAnswer(String... urls) {
+    private String getAnswer(String... urls) {
+        String answer = null;
         try {
             URL url = new URL(urls[0]);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setConnectTimeout(500);
             connection.setRequestMethod("GET");
             connection.setUseCaches(false);
 
             int code = connection.getResponseCode();
-
             if (code == HttpURLConnection.HTTP_OK) {
                 BufferedReader reader = new BufferedReader(
                         new InputStreamReader(connection.getInputStream(), "utf8"));
                 answer = "";
-                String line = null;
+                String line;
 
                 while ((line = reader.readLine()) != null) {
                     answer += line;
@@ -64,12 +71,11 @@ public class AsyncUploadingData extends AsyncTask<String, Void, Void> {
         } catch (IOException ex) {
             ex.printStackTrace();
         }
+
+        return answer;
     }
 
-
-    interface AsyncResult {
+    interface AsyncTaskResult {
         void getResult(String answer);
     }
-
-
 }

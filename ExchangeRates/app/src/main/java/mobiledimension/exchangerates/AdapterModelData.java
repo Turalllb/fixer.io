@@ -14,7 +14,6 @@ import java.util.List;
  */
 
 class AdapterModelData extends ArrayAdapter<ModelData> {
-
     private List<ModelData> modelDataList;
     private LayoutInflater inflater;
     private int layout;
@@ -36,28 +35,23 @@ class AdapterModelData extends ArrayAdapter<ModelData> {
         final ViewHolder viewHolder;
 
         if (convertView == null) {
-
             convertView = inflater.inflate(this.layout, parent, false);
             viewHolder = new ViewHolder();
             viewHolder.name_rate = (TextView) convertView.findViewById(R.id.name_rate);
             viewHolder.rate = (TextView) convertView.findViewById(R.id.rate);
             convertView.setTag(viewHolder);
         } else {
-
             viewHolder = (ViewHolder) convertView.getTag();
-
         }
         ModelData modelData = modelDataList.get(position);
         viewHolder.name_rate.setText(modelData.getName());
         viewHolder.rate.setText(Double.toString(modelData.getValue()));
 
-
         return convertView;
-
     }
 
 
-    void Refresh() {
+    void refresh() {
         this.notifyDataSetChanged();
     }
 

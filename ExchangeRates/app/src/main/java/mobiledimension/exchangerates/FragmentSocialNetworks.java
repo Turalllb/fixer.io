@@ -22,10 +22,9 @@ import java.util.List;
  * Created by Турал on 11.12.2017.
  */
 
-public class FragmentAct extends Fragment implements SocialNetworkManager.OnInitializationCompleteListener, OnLoginCompleteListener {
-
+public class FragmentSocialNetworks extends Fragment implements SocialNetworkManager.OnInitializationCompleteListener, OnLoginCompleteListener {
     public static final String SOCIAL_NETWORK_TAG = "SocialIntegrationMain.SOCIAL_NETWORK_TAG";
-    String VK_KEY = "6040457";
+    final String VK_KEY = "6040457";
     String[] vkScope = new String[]{
             VKScope.FRIENDS,
             VKScope.WALL,
@@ -45,7 +44,7 @@ public class FragmentAct extends Fragment implements SocialNetworkManager.OnInit
             public void onClick(View v) {
                 int networkId = 0; //на случай если будут кнопки от других соц сетей
                 networkId = VkSocialNetwork.ID;
-                ScreenShot();
+                screenshot();
                 SocialNetwork socialNetwork = mSocialNetworkManager.getSocialNetwork(networkId);
                 if (!socialNetwork.isConnected()) {
                     if (networkId != 0) {
@@ -58,11 +57,10 @@ public class FragmentAct extends Fragment implements SocialNetworkManager.OnInit
                     }
                 } else {
                     Bundle postParams = new Bundle();
-                    postParams.putString(SocialNetwork.BUNDLE_LINK, "https://github.com/gorbin/ASNE");
+                    postParams.putString(SocialNetwork.BUNDLE_LINK, "https://fixer.io");
                    // postParams.putString(SocialNetwork.BUNDLE_PICTURE, "photo14354205_456239074");
 
                     socialNetwork.requestPostPhotoMessageLink(vkPhoto, postParams, "ExchangeRates", postingComplete);
-
                 }
             }
         });
@@ -92,8 +90,6 @@ public class FragmentAct extends Fragment implements SocialNetworkManager.OnInit
                 }
             }
         }
-
-
         return v;
     }
 
@@ -102,11 +98,10 @@ public class FragmentAct extends Fragment implements SocialNetworkManager.OnInit
         @Override
         public void onPostSuccessfully(int socialNetworkID) {
             try {
-                Toast.makeText(getActivity(), "Sent", Toast.LENGTH_LONG).show(); //выпадает NPE , если до вывода сообщения диалог уже закрыт
+                Toast.makeText(getActivity(), "Опубликовано", Toast.LENGTH_LONG).show(); //выпадает NPE , если до вывода сообщения диалог уже закрыт
             } catch (NullPointerException e) {
                 e.printStackTrace();
             }
-
         }
 
         @Override
@@ -117,7 +112,6 @@ public class FragmentAct extends Fragment implements SocialNetworkManager.OnInit
 
     @Override
     public void onError(int networkId, String requestID, String errorMessage, Object data) {
-
         Toast.makeText(getActivity(), "ERROR: " + errorMessage, Toast.LENGTH_LONG).show();
     }
 
@@ -149,7 +143,7 @@ public class FragmentAct extends Fragment implements SocialNetworkManager.OnInit
     }
 
 
-    void ScreenShot() {
+    void screenshot() {
         View rootView = getActivity().findViewById(android.R.id.content).getRootView();
         rootView.setDrawingCacheEnabled(true);
         vkPhoto = rootView.getDrawingCache();

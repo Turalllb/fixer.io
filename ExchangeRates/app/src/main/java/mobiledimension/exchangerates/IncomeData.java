@@ -7,17 +7,16 @@ import java.util.List;
  */
 
 class IncomeData {
-
     private String base;
     private String strDate;
     private List<ModelData> rates;
-    private List<String> currencies;
+    private List<String> currenciesList;
 
-    IncomeData(String base, String strDate, List<ModelData> rates, List<String> currencies) {
+    IncomeData(String base, String strDate, List<ModelData> rates, List<String> currenciesList) {
         this.base = base;
         this.strDate = strDate;
         this.rates = rates;
-        this.currencies = currencies;
+        this.currenciesList = currenciesList;
     }
 
     String getBase() {
@@ -33,6 +32,6 @@ class IncomeData {
     }
 
     List<String> getCurrencies() {
-        return currencies;
+        return currenciesList;
     }
 }

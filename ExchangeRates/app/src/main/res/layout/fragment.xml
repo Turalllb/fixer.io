@@ -6,9 +6,8 @@
 
     <Button
         android:id="@+id/VK_share"
-        android:layout_width="32dp"
-        android:layout_height="27dp"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
         android:layout_gravity="center"
-        android:background="@color/vk_share_blue_color"
-        android:text="VK" />
+        android:background="@drawable/vk_logo" />
 </LinearLayout>

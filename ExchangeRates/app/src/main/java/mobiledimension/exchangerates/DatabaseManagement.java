@@ -16,17 +16,13 @@ import static mobiledimension.exchangerates.MainMenu.LOG_TAG;
  */
 
 class DatabaseManagement {
-
     private SQLiteDatabase exchangeRatesDatabase;
-    private DatabaseHelper databaseHelper;
 
-
-    DatabaseManagement(SQLiteDatabase sqLiteDatabase, DatabaseHelper databaseHelper) {
+    DatabaseManagement(SQLiteDatabase sqLiteDatabase) {
         exchangeRatesDatabase = sqLiteDatabase;
-        this.databaseHelper = databaseHelper;
     }
 
-    void setDatabase(String strDate, String currency, String json) {
+    void setDataBase(String strDate, String currency, String json) {
         // создаем объект для данных
         ContentValues cv = new ContentValues();
         try {
@@ -43,9 +39,7 @@ class DatabaseManagement {
         } catch (ParseException e) {
             e.printStackTrace();
         }
-        /*java.util.Date date2   = new java.util.Date(unixTimeDate);
-        String str =  (String) android.text.format.DateFormat.format("yyyy-MM-dd", date2);
-        System.out.println(unixTimeDate + "    " + str + "    " );*/
+
         Log.d(LOG_TAG, "--- Insert in ExchangeRatesDatabase: ---");
         // вставляем запись и получаем ее ID
         long rowID = exchangeRatesDatabase.insert("ExchangeRatesTable", null, cv);
@@ -79,7 +73,9 @@ class DatabaseManagement {
 
 
     String getAnswer(String strDate, String currency) {
-        long unixTimeDate = 1; // запись ради инициализации
+
+        long unixTimeDate;
+        String answer = null;
 
         try {
             SimpleDateFormat format = new SimpleDateFormat();
@@ -87,17 +83,18 @@ class DatabaseManagement {
             Date date = format.parse(strDate);
             unixTimeDate = date.getTime();
 
-        } catch (ParseException e) {
-            e.printStackTrace();
+            Cursor c = exchangeRatesDatabase.query("ExchangeRatesTable",
+                    new String[]{"json"},
+                    "date = ? AND currency = ?",
+                    new String[]{Long.toString(unixTimeDate), currency},
+                    null, null, null);
+
+            answer = (c != null && c.moveToFirst()) ? c.getString(c.getColumnIndex("json")) : null;
+            if (c != null) c.close();
+        } catch (ParseException e) { //ловим не только ParseException, но и исключение, которое выбросится,
+            e.printStackTrace();     // если в момент выполнения программы, удалить базу данных с
         }
-
-        Cursor c = exchangeRatesDatabase.query("ExchangeRatesTable",
-                new String[]{"json"},
-                "date = ? AND currency = ?",
-                new String[]{Long.toString(unixTimeDate), currency},
-                null, null, null);
-
-        return (c != null && c.moveToFirst()) ? c.getString(c.getColumnIndex("json")) : null;
+        return answer;
     }
 
 }
