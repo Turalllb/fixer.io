@@ -34,9 +34,9 @@ class Parser {
         Iterator keys = rates.keys();
         List<ModelData> ratesList = new ArrayList<>();
         List<String> currenciesList = new ArrayList<String>();
-        currenciesList.add(base);
         while (keys.hasNext()) {
             String key = (String) keys.next();
+            System.out.println();
             currenciesList.add(key);
             //Number потому, что по ключу "IDR" прилетает Integer
             Number value = (Number) rates.get(key);

@@ -30,7 +30,7 @@ import static mobiledimension.exchangerates.ModelData.COMPARATOR_VALUE_DESCENDIN
 
 public class MainMenu extends AppCompatActivity implements DatePickerFragment.DialogFragmentListener, AsyncTaskUploadingData.AsyncTaskResult {
     static final String LOG_TAG = "myLogs";
-    private final String ACCESS_KEY = "0cd4416cd335bb08486b95e597b8c6b3"; //Для доступа к апи сайта. Пока не использую. Есть ограничения в бесплатной версии.
+    private final String ACCESS_KEY = "0cd4416cd335bb08486b95e597b8c6b3"; //Для доступа к апи сайта. Есть ограничения в бесплатной версии.
     DatabaseHelper databaseHelper;
     DatabaseManagement databaseManagement;
     NetworkChangeReceiver networkChangeReceiver;
@@ -158,7 +158,7 @@ public class MainMenu extends AppCompatActivity implements DatePickerFragment.Di
             //Если в БД уже есть результат
             setData();
         } else {
-            String url = "https://api.fixer.io/" + currentDate + "?base=" + currentCurrency;
+            String url = "http://data.fixer.io/api/" + currentDate + "?access_key=" + ACCESS_KEY + "&base=" + currentCurrency;
             AsyncTaskUploadingData asyncTaskUploadingData = new AsyncTaskUploadingData(this);
             asyncTaskUploadingData.execute(url);
         }
