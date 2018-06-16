@@ -14,12 +14,8 @@ import java.util.List;
 class Parser {
     private IncomeData incomeData;
 
-    Parser(String answer) {
-        try {
-            deserialize(answer);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+    Parser(String answer) throws JSONException {
+        deserialize(answer);
     }
 
     private void deserialize(String json) throws JSONException {

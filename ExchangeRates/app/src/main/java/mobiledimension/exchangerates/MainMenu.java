@@ -18,6 +18,8 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONException;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -30,16 +32,15 @@ import static mobiledimension.exchangerates.ModelData.COMPARATOR_VALUE_DESCENDIN
 
 public class MainMenu extends AppCompatActivity implements DatePickerFragment.DialogFragmentListener, AsyncTaskUploadingData.AsyncTaskResult {
     static final String LOG_TAG = "myLogs";
-    private final String ACCESS_KEY = "0cd4416cd335bb08486b95e597b8c6b3"; //Для доступа к апи сайта. Есть ограничения в бесплатной версии.
     DatabaseHelper databaseHelper;
     DatabaseManagement databaseManagement;
     NetworkChangeReceiver networkChangeReceiver;
+    private final String ACCESS_KEY = "0cd4416cd335bb08486b95e597b8c6b3"; //Для доступа к апи сайта. Есть ограничения в бесплатной версии 1000 запросов и только по отношению к EUR.
     private String currentDate;
-    private String answer;
     private String currentCurrency = "EUR";
     private List<String> currenciesArrayList = new ArrayList<>(Arrays.asList("EUR")); //Список валют для спиннера
     private TextView currentDateTextView;
-    private List<ModelData> modelDataArrayList = new ArrayList<>(); //список из моделей (валюта курс)
+    private List<ModelData> ratesArrayList = new ArrayList<>(); //список из моделей (валюта курс)
     private ArrayAdapter<String> spinnerAdapter;
     private AdapterModelData adapterModelData;
     private DatePickerFragment datePickerFragment = new DatePickerFragment();
@@ -71,7 +72,7 @@ public class MainMenu extends AppCompatActivity implements DatePickerFragment.Di
         currentDateTextView.setText(currentDate);
         //endregion
 
-        adapterModelData = new AdapterModelData(this, R.layout.rates, modelDataArrayList); //Адаптер списка с курсом валют
+        adapterModelData = new AdapterModelData(this, R.layout.rates, ratesArrayList); //Адаптер списка с курсом валют
         listView.setAdapter(adapterModelData);
 
         spinnerAdapter = new ArrayAdapter<>(this, R.layout.custom_spinner_item, currenciesArrayList); //Адаптер для спиннера
@@ -115,13 +116,13 @@ public class MainMenu extends AppCompatActivity implements DatePickerFragment.Di
     private void sorting() {
         switch (sortRadioGroup.getCheckedRadioButtonId()) {
             case R.id.radioButton1:
-                Collections.sort(modelDataArrayList, COMPARATOR_NAME);
+                Collections.sort(ratesArrayList, COMPARATOR_NAME);
                 break;
             case R.id.radioButton2:
-                Collections.sort(modelDataArrayList, COMPARATOR_VALUE_ASCENDING);
+                Collections.sort(ratesArrayList, COMPARATOR_VALUE_ASCENDING);
                 break;
             case R.id.radioButton3:
-                Collections.sort(modelDataArrayList, COMPARATOR_VALUE_DESCENDING);
+                Collections.sort(ratesArrayList, COMPARATOR_VALUE_DESCENDING);
                 break;
         }
     }
@@ -153,10 +154,11 @@ public class MainMenu extends AppCompatActivity implements DatePickerFragment.Di
     }
 
     private void uploadData() {
-        answer = databaseManagement.getAnswer(currentDate, currentCurrency);
+        ratesArrayList.clear();
+        String answer = databaseManagement.getAnswer(currentDate, currentCurrency);
         if (answer != null) {
             //Если в БД уже есть результат
-            setData();
+            setData(getIncomeData(answer));
         } else {
             String url = "http://data.fixer.io/api/" + currentDate + "?access_key=" + ACCESS_KEY + "&base=" + currentCurrency;
             AsyncTaskUploadingData asyncTaskUploadingData = new AsyncTaskUploadingData(this);
@@ -166,29 +168,30 @@ public class MainMenu extends AppCompatActivity implements DatePickerFragment.Di
 
     //Метод интерфейса для обратного вызова из АсинкТаск
     public void getResult(String answer) {
-        this.answer = answer;
-        setData();
-
+        validationOfData(answer);
     }
 
-    private void setData() {
-        modelDataArrayList.clear();
-        if (answer != null) {
-            Parser parser = new Parser(answer);
-            /*класс, который хранит дату, установленную валюту и т.д. для удобной передачи из парсера,
+    IncomeData getIncomeData(String answer) {
+        Parser parser = null;
+        try {
+            parser = new Parser(answer);
+            return parser.getIncomeData();
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
+        /*класс, который хранит дату, установленную валюту и т.д. для удобной передачи из парсера,
              а если нужно и для возврата из дессериализатора*/
-            IncomeData incomeData = parser.getIncomeData();
-            if (incomeData.getDate().equals(currentDate)) { //Проверяю дату, т.к. апи может вернуть результат на другую дату, если по текущей курсов нет.
-                modelDataArrayList.addAll(incomeData.getRates());
-                currenciesArrayList.clear();
-                currenciesArrayList.addAll(incomeData.getCurrencies());
-                Collections.sort(currenciesArrayList);
-                spinnerAdapter.notifyDataSetChanged();
-               /* Не всегда в спиннере после обновления будет стоять валюта по которой сделан запрос,
-                так как список спиннера тоже всегда обновляется, поэтому вручную устанавливаю текущую валюту*/
-                spinnerOfCurrencies.setSelection(currenciesArrayList.indexOf(currentCurrency));
-                sorting();
-                adapterModelData.refresh();
+    }
+
+
+    //Некоторые специфические для Fixer апи проверки ответов
+    void validationOfData(String answer) {
+        if (answer != null && getIncomeData(answer) != null) { //может произойти например из-за проблем с сетью или не ожидаемом ответе сервера.
+            IncomeData incomeData = getIncomeData(answer);
+            if (incomeData.getDate().equals(currentDate)) {//Проверяю дату, т.к. апи может вернуть результат на другую дату, если по текущей курсов нет.
+                System.out.println(incomeData.getDate());
+                setData(incomeData);
                 databaseManagement.setDataBase(incomeData.getDate(), incomeData.getBase(), answer);
             } else {
                 adapterModelData.refresh(); //обновляю, чтобы показать List без результатов
@@ -198,8 +201,22 @@ public class MainMenu extends AppCompatActivity implements DatePickerFragment.Di
         } else {
             adapterModelData.refresh();
             Toast.makeText(getApplicationContext(),
-                    "Курсы на текущую дату по выбранной валюте отсутствуют", Toast.LENGTH_SHORT).show();
+                    "Курсы на текущую дату по выбранной валюте отсутствуют или у Вас бесплатная версия", Toast.LENGTH_SHORT).show();
         }
+    }
+
+
+    private void setData(IncomeData incomeData) {
+        ratesArrayList.addAll(incomeData.getRates());
+        currenciesArrayList.clear();
+        currenciesArrayList.addAll(incomeData.getCurrencies());
+        Collections.sort(currenciesArrayList);
+        spinnerAdapter.notifyDataSetChanged();
+               /* Не всегда в спиннере после обновления будет стоять валюта по которой сделан запрос,
+                так как список спиннера тоже всегда обновляется, поэтому вручную устанавливаю текущую валюту*/
+        spinnerOfCurrencies.setSelection(currenciesArrayList.indexOf(currentCurrency));
+        sorting();
+        adapterModelData.refresh();
     }
 
 }

@@ -71,7 +71,6 @@ class AsyncTaskUploadingData extends AsyncTask<String, Void, String> {
         } catch (IOException ex) {
             ex.printStackTrace();
         }
-
         return answer;
     }
 
